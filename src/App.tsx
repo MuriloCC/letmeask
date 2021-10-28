@@ -1,25 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { createContext, useState } from 'react';
+
+import { GoogleAuthProvider, signInWithPopup } from '@firebase/auth';
+import { BrowserRouter, Route } from 'react-router-dom'
+import { Home } from "./pages/Home";
+import { NewRoom } from "./pages/NewRoom";
+import { auth } from './services/firebase';
+import './styles/global.scss';
+
+type User = {
+  id: string,
+  name: string,
+  avatar: string
+}
+
+type AuthContextType = {
+  user: User | undefined,
+  signInWithGoogle: () => void
+}
+
+export const AuthContext = createContext({} as AuthContextType);
 
 function App() {
+  const [user, setUser] = useState<User>();
+
+  async function signInWithGoogle(){
+    const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider).then(result => {
+          if(result.user){
+            const { displayName, photoURL, uid } = result.user;
+
+            if(!displayName || !photoURL){
+              throw new Error('missing information from google account')
+            }
+
+            setUser({
+              id: uid,
+              name: displayName,
+              avatar: photoURL
+            })
+          }
+            
+        });
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <AuthContext.Provider value={{ user, signInWithGoogle }}>
+        <Route path="/" exact component={Home} />
+        <Route path="/rooms/new" component={NewRoom} />
+      </AuthContext.Provider>
+    </BrowserRouter>
   );
 }
 
