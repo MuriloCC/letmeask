@@ -16,6 +16,12 @@
         margin-right: 8px;
     }
 
+    &.outlined{
+        background: transparent;
+        border: 1px solid #835afd;
+        color: #835afd;
+    }
+
     //habilita o efeito de hover apenas se o botão não estiver desabilitado.
     &:not(:disabled):hover{
         filter: brightness(0.8);
